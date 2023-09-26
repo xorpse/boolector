@@ -227,6 +227,15 @@ typedef enum BtorSMT2Tag
   BTOR_BV_REDAND_TAG_SMT2           = 37 + BTOR_BV_TAG_CLASS_SMT2,
   BTOR_BV_EXT_ROTATE_LEFT_TAG_SMT2  = 38 + BTOR_BV_TAG_CLASS_SMT2,
   BTOR_BV_EXT_ROTATE_RIGHT_TAG_SMT2 = 39 + BTOR_BV_TAG_CLASS_SMT2,
+  /* Proposed SMT-LIB overflow predicates */
+  // BTOR_BV_NEGO_TAG_SMT2         = 40 + BTOR_BV_BITVEC_TAG_SMT2,
+  BTOR_BV_UADDO_TAG_SMT2        = 40 + BTOR_BV_BITVEC_TAG_SMT2,
+  BTOR_BV_SADDO_TAG_SMT2        = 41 + BTOR_BV_BITVEC_TAG_SMT2,
+  BTOR_BV_USUBO_TAG_SMT2        = 42 + BTOR_BV_BITVEC_TAG_SMT2,
+  BTOR_BV_SSUBO_TAG_SMT2        = 43 + BTOR_BV_BITVEC_TAG_SMT2,
+  BTOR_BV_UMULO_TAG_SMT2        = 44 + BTOR_BV_BITVEC_TAG_SMT2,
+  BTOR_BV_SMULO_TAG_SMT2        = 45 + BTOR_BV_BITVEC_TAG_SMT2,
+  BTOR_BV_SDIVO_TAG_SMT2        = 46 + BTOR_BV_BITVEC_TAG_SMT2,
 
   /* ---------------------------------------------------------------------- */
   /* Logic                                                                  */
@@ -956,6 +965,15 @@ insert_bitvec_symbols_smt2 (BtorSMT2Parser *parser)
   INSERT ("bvredand", BTOR_BV_REDAND_TAG_SMT2);
   INSERT ("ext_rotate_left", BTOR_BV_EXT_ROTATE_LEFT_TAG_SMT2);
   INSERT ("ext_rotate_right", BTOR_BV_EXT_ROTATE_RIGHT_TAG_SMT2);
+  /* Proposed SMT-LIB overflow extensions */
+  // INSERT ("bvnego", BTOR_BV_NEGO_TAG_SMT2);
+  INSERT ("bvuaddo", BTOR_BV_UADDO_TAG_SMT2);
+  INSERT ("bvsaddo", BTOR_BV_SADDO_TAG_SMT2);
+  INSERT ("bvusubo", BTOR_BV_USUBO_TAG_SMT2);
+  INSERT ("bvssubo", BTOR_BV_SSUBO_TAG_SMT2);
+  INSERT ("bvumulo", BTOR_BV_UMULO_TAG_SMT2);
+  INSERT ("bvsmulo", BTOR_BV_SMULO_TAG_SMT2);
+  INSERT ("bvsdivo", BTOR_BV_SDIVO_TAG_SMT2);
 }
 
 static void
@@ -1994,8 +2012,14 @@ close_term_bin_bv_left_associative (BtorSMT2Parser *parser,
           || item_cur->tag == BTOR_BV_OR_TAG_SMT2
           || item_cur->tag == BTOR_BV_XOR_TAG_SMT2
           || item_cur->tag == BTOR_BV_ADD_TAG_SMT2
+          || item_cur->tag == BTOR_BV_UADDO_TAG_SMT2
+          || item_cur->tag == BTOR_BV_SADDO_TAG_SMT2
           || item_cur->tag == BTOR_BV_SUB_TAG_SMT2
-          || item_cur->tag == BTOR_BV_MUL_TAG_SMT2);
+          || item_cur->tag == BTOR_BV_SSUBO_TAG_SMT2
+          || item_cur->tag == BTOR_BV_USUBO_TAG_SMT2
+          || item_cur->tag == BTOR_BV_MUL_TAG_SMT2
+          || item_cur->tag == BTOR_BV_UMULO_TAG_SMT2
+          || item_cur->tag == BTOR_BV_SMULO_TAG_SMT2);
 
   BoolectorNode *old, *exp;
   uint32_t i;
@@ -2064,6 +2088,7 @@ close_term_bin_bv_fun (BtorSMT2Parser *parser,
           || item_cur->tag == BTOR_BV_XNOR_TAG_SMT2
           || item_cur->tag == BTOR_BV_COMP_TAG_SMT2
           || item_cur->tag == BTOR_BV_SDIV_TAG_SMT2
+          || item_cur->tag == BTOR_BV_SDIVO_TAG_SMT2
           || item_cur->tag == BTOR_BV_SREM_TAG_SMT2
           || item_cur->tag == BTOR_BV_SMOD_TAG_SMT2
           || item_cur->tag == BTOR_BV_ULT_TAG_SMT2
@@ -2671,6 +2696,24 @@ close_term (BtorSMT2Parser *parser)
       return 0;
     }
   }
+  /* BV: UADDO -------------------------------------------------------------- */
+  else if (tag == BTOR_BV_UADDO_TAG_SMT2)
+  {
+    if (!close_term_bin_bv_left_associative (
+            parser, item_open, item_cur, nargs, boolector_uaddo))
+    {
+      return 0;
+    }
+  }
+  /* BV: SADDO -------------------------------------------------------------- */
+  else if (tag == BTOR_BV_SADDO_TAG_SMT2)
+  {
+    if (!close_term_bin_bv_left_associative (
+            parser, item_open, item_cur, nargs, boolector_saddo))
+    {
+      return 0;
+    }
+  }
   /* BV: SUB ---------------------------------------------------------------- */
   else if (tag == BTOR_BV_SUB_TAG_SMT2)
   {
@@ -2680,11 +2723,56 @@ close_term (BtorSMT2Parser *parser)
       return 0;
     }
   }
+  /* BV: USUBO -------------------------------------------------------------- */
+  else if (tag == BTOR_BV_USUBO_TAG_SMT2)
+  {
+    if (!close_term_bin_bv_left_associative (
+            parser, item_open, item_cur, nargs, boolector_usubo))
+    {
+      return 0;
+    }
+  }
+  /* BV: SSUBO -------------------------------------------------------------- */
+  else if (tag == BTOR_BV_SSUBO_TAG_SMT2)
+  {
+    if (!close_term_bin_bv_left_associative (
+            parser, item_open, item_cur, nargs, boolector_ssubo))
+    {
+      return 0;
+    }
+  }
   /* BV: MUL ---------------------------------------------------------------- */
   else if (tag == BTOR_BV_MUL_TAG_SMT2)
   {
     if (!close_term_bin_bv_left_associative (
             parser, item_open, item_cur, nargs, boolector_mul))
+    {
+      return 0;
+    }
+  }
+  /* BV: MUL ---------------------------------------------------------------- */
+  else if (tag == BTOR_BV_MUL_TAG_SMT2)
+  {
+    if (!close_term_bin_bv_left_associative (
+            parser, item_open, item_cur, nargs, boolector_mul))
+    {
+      return 0;
+    }
+  }
+  /* BV: UMULO -------------------------------------------------------------- */
+  else if (tag == BTOR_BV_UMULO_TAG_SMT2)
+  {
+    if (!close_term_bin_bv_left_associative (
+            parser, item_open, item_cur, nargs, boolector_umulo))
+    {
+      return 0;
+    }
+  }
+  /* BV: SMULO -------------------------------------------------------------- */
+  else if (tag == BTOR_BV_SMULO_TAG_SMT2)
+  {
+    if (!close_term_bin_bv_left_associative (
+            parser, item_open, item_cur, nargs, boolector_smulo))
     {
       return 0;
     }
@@ -2775,6 +2863,15 @@ close_term (BtorSMT2Parser *parser)
   {
     if (!close_term_bin_bv_fun (
             parser, item_open, item_cur, nargs, boolector_sdiv))
+    {
+      return 0;
+    }
+  }
+  /* BV: SDIVO -------------------------------------------------------------- */
+  else if (tag == BTOR_BV_SDIVO_TAG_SMT2)
+  {
+    if (!close_term_bin_bv_fun (
+            parser, item_open, item_cur, nargs, boolector_sdivo))
     {
       return 0;
     }
